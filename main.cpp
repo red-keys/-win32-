@@ -3,28 +3,7 @@
 using namespace std;
 
 #define  KEY_DOWN(VK_NONAME)  ((GetAsyncKeyState(VK_NONAME)&0x8000)?1:0)
-/*
-char c1[81] ="_______________________________________________________________________________ ";
-char c2[81] ="|                         |                         |                         | ";
-char c3[81] ="|                         |                         |                         | ";
-char c4[81] ="|                         |                         |                         | ";
-char c5[81] ="|        (*￣_￣*)        |         (╬▔皿▔)      |         (￣_￣|||)      | ";
-char c6[81] ="|                         |                         |                         | ";
-char c7[81] ="|                         |                         |                         | ";
-char c8[81] ="|                         |                         |                         | ";
-char c9[81] ="|                         |                         |                         | ";
-char c10[81]=" ˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉ ";
-char c11[81]="_______________________________________________________________________________ ";
-char c12[81]="|                         |                         |                         | ";
-char c13[81]="|                         |                         |                         | ";
-char c14[81]="|                         |                         |       ■■              | ";
-char c15[81]="|                         |                         |       ■                | ";
-char c16[81]="|        (⊙_⊙)          |         (＞﹏＜)        |            ■           | ";
-char c17[81]="|                         |                         |                         | ";
-char c18[81]="|                         |                         |                         | ";
-char c19[81]="|                         |                         |                         | ";
-char c20[81]=" ˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉ ";
-*/
+
 void show();
 void show1();
 void show2();
@@ -102,32 +81,6 @@ int main()
 		*/
 		if(check_key(32)==true)//空格键
 		{
-			if('T'==(T.name) || 'S'==(T.name) || 'L'==(T.name))
-			{
-				if ( T.point_x>0 && T.point_x<20 && T.point_y>0 && T.point_y<22 )
-				{
-					T.type=(T.type+1)%4;
-					int temp[3][3];//用来存储逆时针旋转90°之后的结果 
-
-					temp[0][0]=(line[T.point_y+1]&(1>>(T.point_x-1)))?1:0;
-					temp[0][1]=(line[T.point_y+1]&(1>>T.point_x+1))?1:0;
-					temp[0][2]=(line[T.point_y+1]&(1>>(T.point_x+1)))?1:0;
-
-					temp[1][0]=(line[T.point_y]&(1>>(T.point_x-1)))?1:0;
-					temp[1][1]=(line[T.point_y]&(1>>T.point_x))?1:0;
-					temp[1][2]=(line[T.point_y]&(1>>(T.point_x+1)))?1:0;
-					for(i=0;i<3;i++)//行
-					{
-						for (j=0;j<3;j++)//列
-						{
-							temp[i][j]=line;
-						}
-					}
-					
-				}
-			}
-			system("cls");
-			display(line1,line2);
 			Sleep(300);
 		}
 		if(KEY_DOWN(VK_UP))
@@ -198,34 +151,7 @@ int main()
 
 
 
-void show1()
-{
-	system("cls");
-	cout<<"      "<<endl;
-	cout<<"■■■"<<endl;
-	cout<<"  ■  "<<endl;
-}
-void show2()
-{
-	system("cls");
-	cout<<"  ■  "<<endl;
-	cout<<"  ■■"<<endl;
-	cout<<"  ■  "<<endl;
-}
-void show3()
-{
-	system("cls");
-	cout<<"  ■  "<<endl;
-	cout<<"■■■"<<endl;
-	cout<<"      "<<endl;
-}
-void show4()
-{
-	system("cls");
-	cout<<"  ■  "<<endl;
-	cout<<"■■  "<<endl;
-	cout<<"  ■  "<<endl;
-}
+
 
 void display(long line1[23],long line2[23])
 {
