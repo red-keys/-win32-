@@ -1,0 +1,310 @@
+#include <iostream>
+#include <windows.h>
+using namespace std;
+
+#define  KEY_DOWN(VK_NONAME)  ((GetAsyncKeyState(VK_NONAME)&0x8000)?1:0)
+#define  CHECK(y,type,x)      (line1[y]&(Tetris_S[type]>>(x)))
+int Tetris_S[4]={0x036,0x231,0x360,0x462};
+int Tetris_L[4]={0x223,0x170,0x622,0x074};
+int Tetris_T[4]={0x072,0x232,0x270,0x262};
+
+//Tetris_S[0]=0x036的含义  □□□  000  0
+//                         □■■  011  3
+//                         ■■□  110  6
+//
+struct diamonds
+{
+	char name;//方块S 方块L 方块I 方块O 方块T
+	int type;//方块模式 
+	int point_x;//x坐标
+	int point_y;//y坐标
+	/*S方块模式0    □■     L方块模式0 ■			T方块模式0   ■□■       I方块模式0  ■        O方块模式0 □■          */
+	/*            ■■                  □                         ■                     □                   ■■          */
+	/*                                  ■■                                              ■                                 */
+	/*S方块模式1  ■                                T方块模式1     ■                     ■                                 */
+	/*            □■       L方块模式1     ■                     □■                                                      */
+	/*              ■                  ■□■                     ■         I方块模式1 ■□■■                            */
+
+	/*S方块模式2    ■■     L方块模式2 ■■        T方块模式2     ■                                                        */
+	/*            ■□                    □                     ■□■                                                      */
+	/*                                    ■                                                                                 */
+	/*S方块模式3  ■                              T方块模式3       ■                                                        */
+	/*            ■□       L方块模式3 ■□■                   ■□                                                      */
+	/*              ■                  ■                         ■                                                        */
+	/*                                                                                                                       */
+
+};
+void display(long line1[23],long line2[23]);
+bool draw_diamonds(long line1[23],long line2[23],diamonds &dia);
+bool check_key(char k)//检测键盘是否被按下
+{
+	if(KEY_DOWN(k))
+		return true;
+	else
+		return false;
+}
+int main()
+{
+	int i=0,j;
+	diamonds T;
+	T.name='T';
+	T.type=0;
+	T.point_x=1;
+	T.point_y=1;
+	long line1[23]={0};
+	long line2[23]={0};
+
+	//line1[22]=0x5555f;
+	draw_diamonds(line1,line2,T);
+
+	
+	display(line1,line2);
+	
+#if 1
+	while (1)
+	{
+		/*
+			VK_LEFT	    0x25	37	LEFT ARROW 键(←)
+			VK_UP	    0x26	38	UP ARROW键(↑)
+			VK_RIGHT	0x27	39	RIGHT ARROW键(→)
+			VK_DOWN  	0x28	40	DOWN ARROW键(↓)
+		*/
+		if(check_key(32)==true)//空格键
+		{
+			if (T.point_y>0 && T.point_y<22 && T.point_x>0 && T.point_x<19)
+			{
+				T.type++;
+				T.type&=0x3;//T.type%=4;//满4回0
+				
+				draw_diamonds(line1,line2,T);
+				display(line1,line2);
+			}
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_UP))
+		{
+			
+				if (T.point_y-1>=0)
+				{
+					
+					T.point_y-=1;
+					
+					if(draw_diamonds(line1,line2,T)==false)
+						T.point_y+=1;
+					
+					display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_DOWN))
+		{
+				if (T.point_y<22)
+				{
+					
+					T.point_y+=1;
+					
+					if (draw_diamonds(line1,line2,T)==false)
+						T.point_y-=1;
+
+					display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_LEFT))
+		{
+			
+				if (T.point_x>0)
+				{
+					T.point_x-=1;
+					
+					if(draw_diamonds(line1,line2,T)==false)
+						T.point_x+=1;
+					
+					display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_RIGHT))
+		{
+				if (T.point_x<19 )
+				{
+					T.point_x+=1;
+					
+					if(draw_diamonds(line1,line2,T)==false)
+						T.point_x-=1;
+					
+					display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+	}
+#endif
+	getchar();
+}
+
+
+
+
+
+void display(long line1[23],long line2[23])
+{
+	system("cls");
+	int i,j;
+	for(i=0;i<23;i++)
+	{
+		for (j=0;j<20;j++)
+		{
+			if (line1[i]&(1<<j))
+			{
+				cout<<"■";
+			} 
+			else
+			{
+				cout<<"  ";
+			}
+		}
+		for (j=0;j<20;j++)
+		{
+			if(j==0)
+			{
+				if (line2[i]&(1<<j))
+					cout<<"■"; 
+				else
+					cout<<"| ";
+			}
+			else
+			{
+				if (line2[i]&(1<<j))
+					cout<<"■"; 
+				else
+					cout<<"  ";
+			}
+		}
+	}
+	cout<<"_______________________________________________________________________________";
+}
+bool draw_diamonds(long line1[23],long line2[23],diamonds &dia)//背景范围 横20 纵22
+{
+	int x=dia.point_x;
+	int y=dia.point_y;
+	if( y<1 || y>21 || x<1 || x>18)
+	{
+		if (x==0 && y==22)
+			return false;
+		if (x==19 && y==22)
+			return false;
+		int *temp;
+		switch(dia.name)
+		{
+		case 'L':
+			temp=Tetris_L;
+			break;
+		case 'S':
+			temp=Tetris_S;
+			break;
+		case 'T':
+			temp=Tetris_T;
+			break;
+		}
+		if( (temp[dia.type] & 0x111) ==0 && x==0)//临界处理
+		{
+			int i;
+			for(i=0;i<23;i++)
+				line1[i]=0;
+			line1[y-1] &= ~(0x7<<(x));
+			line1[y-1] |= ((temp[dia.type]&0xf00)>>9)<<(x);
+
+			line1[y] &= ~(0x7<<(x));
+			line1[y] |= ((temp[dia.type]&0x0f0)>>5)<<(x);
+
+			line1[y+1] &= ~(0x7<<(x));
+			line1[y+1] |= ((temp[dia.type]&0x00f)>>1)<<(x);
+			return true;
+		}
+
+		if( (temp[dia.type] & 0x444) ==0 && x==19)
+		{
+			int i;
+			for(i=0;i<23;i++)
+				line1[i]=0;
+			line1[y-1] &= ~(0x7<<(x));
+			line1[y-1] |= ((temp[dia.type]&0xf00)>>7)<<(x-2);
+
+			line1[y] &= ~(0x7<<(x));
+			line1[y] |= ((temp[dia.type]&0x0f0)>>3)<<(x-2);
+
+			line1[y+1] &= ~(0x7<<(x));
+			line1[y+1] |= ((temp[dia.type]&0x00f)<<1)<<(x-2);
+			return true;
+		}
+
+		if( (temp[dia.type] & 0x7) ==0 && y==22)
+		{
+			int i;
+			for(i=0;i<23;i++)
+				line1[i]=0;
+			line1[y-1] &= ~(0x7<<(x-1));
+			line1[y-1] |= ((temp[dia.type]&0xf00)>>8)<<(x-1);
+
+			line1[y] &= ~(0x7<<(x-1));
+			line1[y] |= ((temp[dia.type]&0x0f0)>>4)<<(x-1);
+			return true;
+		}
+	
+		return false;
+	}
+	
+	int i;
+	for(i=0;i<23;i++)
+		line1[i]=0;
+
+	if(dia.name=='S')
+	{
+		//if( CHECK(y-1,dia.type,x-1)==0 && CHECK(y,dia.type,x-1)==0 && CHECK(y+1,dia.type,x-1)==0 )
+		//{
+			line1[y-1] &= ~(0x7<<(x-1));
+			line1[y-1] |= ((Tetris_S[dia.type]&0xf00)>>8)<<(x-1);
+
+			line1[y] &= ~(0x7<<(x-1));
+			line1[y] |= ((Tetris_S[dia.type]&0x0f0)>>4)<<(x-1);
+
+			line1[y+1] &= ~(0x7<<(x-1));
+			line1[y+1] |= ((Tetris_S[dia.type]&0x00f)>>0)<<(x-1);
+		
+		//}
+	}
+	if(dia.name=='T')
+	{
+		if( CHECK(y-1,dia.type,x-1)==0 && CHECK(y,dia.type,x-1)==0 && CHECK(y+1,dia.type,x-1)==0 )
+		{
+			line1[y-1] &= ~(0x7<<(x-1));
+			line1[y-1] |= ((Tetris_T[dia.type]&0xf00)>>8)<<(x-1);
+
+			line1[y] &= ~(0x7<<(x-1));
+			line1[y] |= ((Tetris_T[dia.type]&0x0f0)>>4)<<(x-1);
+
+			line1[y+1] &= ~(0x7<<(x-1));
+			line1[y+1] |= ((Tetris_T[dia.type]&0x00f)>>0)<<(x-1);	
+		}
+	}
+	if(dia.name=='L')
+	{
+		//if( CHECK(y-1,dia.type,x-1)==0 && CHECK(y,dia.type,x-1)==0 && CHECK(y+1,dia.type,x-1)==0 )
+		//{
+			line1[y-1] &= ~(0x7<<(x-1));
+			line1[y-1] |= ((Tetris_L[dia.type]&0xf00)>>8)<<(x-1);
+
+			line1[y] &= ~(0x7<<(x-1));
+			line1[y] |= ((Tetris_L[dia.type]&0x0f0)>>4)<<(x-1);
+
+			line1[y+1] &= ~(0x7<<(x-1));
+			line1[y+1] |= ((Tetris_L[dia.type]&0x00f)>>0)<<(x-1);
+		
+		//}
+	}
+	return true;
+}
