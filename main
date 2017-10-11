@@ -1,0 +1,557 @@
+#include <iostream>
+#include <windows.h>
+using namespace std;
+
+#define  KEY_DOWN(VK_NONAME)  ((GetAsyncKeyState(VK_NONAME)&0x8000)?1:0)
+#define  CHECK(y,type,x)      (line1[y]&(Tetris_S[type]>>(x)))
+int Tetris_S[4]={0x036,0x231,0x360,0x462};
+int Tetris_L[4]={0x223,0x170,0x622,0x074};
+int Tetris_T[4]={0x072,0x232,0x270,0x262};
+
+//Tetris_S[0]=0x036的含义  □□□  000  0
+//                         □■■  011  3
+//                         ■■□  110  6
+//
+struct diamonds
+{
+	char name;//方块S 方块L 方块I 方块O 方块T
+	int type;//方块模式 
+	int point_x;//x坐标
+	int point_y;//y坐标
+	/*S方块模式0    □■     L方块模式0 ■			T方块模式0   ■□■       I方块模式0  ■        O方块模式0 □■          */
+	/*            ■■                  □                         ■                     □                   ■■          */
+	/*                                  ■■                                              ■                                 */
+	/*S方块模式1  ■                                T方块模式1     ■                     ■                                 */
+	/*            □■       L方块模式1     ■                     □■                                                      */
+	/*              ■                  ■□■                     ■         I方块模式1 ■□■■                            */
+
+	/*S方块模式2    ■■     L方块模式2 ■■        T方块模式2     ■                                                        */
+	/*            ■□                    □                     ■□■                                                      */
+	/*                                    ■                                                                                 */
+	/*S方块模式3  ■                              T方块模式3       ■                                                        */
+	/*            ■□       L方块模式3 ■□■                   ■□                                                      */
+	/*              ■                  ■                         ■                                                        */
+	/*                                                                                                                       */
+
+};
+void DisPlay(long line[23],long background[23],long line2[23],long background2[23]);//结算方块和背景的数据  一并丢给display函数展示成图片  line跟background的值不会改变  
+void display(long line1[23],long line2[23]);//将方块结算成 可以展示成图片的数据
+bool draw_diamonds(long line1[23],diamonds &dia1,long background[23]);//  根据需要展示的方块的位置 推算出数据 
+void diamonds_to_background(long lind[23],long background[23]);//将方块融合到背景里面去 成为背景的一部分  line的值不会变 但是background的值会改变 ？
+bool draw_background();// 
+bool check_key(char k)//检测键盘是否被按下
+{
+	if(KEY_DOWN(k))
+		return true;
+	else
+		return false;
+}
+int main()
+{
+	int i=0,j;
+	diamonds T;
+	diamonds L;
+	T.name='T';
+	L.name='L';
+
+	T.type=0;
+	L.type=0;
+
+	T.point_x=1;
+	T.point_y=1;
+
+	L.point_x=1;
+	L.point_y=1;
+
+	long line1[23]={0};
+	long line2[23]={0};
+	long background1[23]={0};
+	long background2[23]={0};
+
+	background1[21]=0xaa5f5;
+	background1[22]=0x5555f;
+	background2[21]=0xaa5f5;
+	background2[22]=0x5555f;
+
+	draw_diamonds(line2,L,background2);
+	draw_diamonds(line1,T,background1);
+
+	DisPlay(line1,background1,line2,background2);
+	//display(background1,background2);
+	
+#if 1
+	while (1)
+	{
+		/*
+			VK_LEFT	    0x25	37	LEFT ARROW 键(←)
+			VK_UP	    0x26	38	UP ARROW键(↑)
+			VK_RIGHT	0x27	39	RIGHT ARROW键(→)
+			VK_DOWN  	0x28	40	DOWN ARROW键(↓)
+			  W                  87
+			  S                  83
+			  A                  65
+			  D                  68
+		*/
+		if(check_key(32)==true)//空格键
+		{
+			if (T.point_y>0 && T.point_y<22 && T.point_x>0 && T.point_x<19)
+			{
+				T.type++;
+				T.type&=0x3;//T.type%=4;//满4回0
+				
+				draw_diamonds(line1,T,background1);
+				DisPlay(line1,background1,line2,background2);
+				//display(line1,line2);
+			}
+			Sleep(300);
+		}
+		if(check_key('J')==true)//空格键
+		{
+			if (L.point_y>0 && L.point_y<22 && L.point_x>0 && L.point_x<19)
+			{
+				L.type++;
+				L.type&=0x3;//T.type%=4;//满4回0
+				
+				draw_diamonds(line2,L,background2);
+				DisPlay(line1,background1,line2,background2);
+				//display(line1,line2);
+			}
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_UP))
+		{	
+				if (T.point_y-1>=0)
+				{
+					
+					T.point_y-=1;
+					
+					if(draw_diamonds(line1,T,background1)==false)
+						T.point_y+=1;
+					
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			Sleep(300);
+		}
+		if(KEY_DOWN('W'))
+		{	
+				if (L.point_y-1>=0)
+				{
+					
+					L.point_y-=1;
+					
+					if(draw_diamonds(line2,L,background2)==false)
+						L.point_y+=1;
+					
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_DOWN))
+		{
+				if (T.point_y<22)
+				{
+					
+					T.point_y+=1;
+					
+					if (draw_diamonds(line1,T,background1)==false)
+					{
+						T.point_y-=1;
+						for (int i=0;i<23;i++)
+						{
+							background1[i]|= line1[i];//方块融合到背景里面去
+						}
+
+						T.point_x=1;//构造一个新的方块
+						T.point_y=1;
+						draw_diamonds(line1,T,background1);
+
+					}
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN('S'))
+		{
+				if (L.point_y<22)
+				{
+					L.point_y+=1;	
+					if (draw_diamonds(line2,L,background2)==false)
+						L.point_y-=1;
+
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_LEFT))
+		{
+				if (T.point_x>0)
+				{
+					T.point_x-=1;
+					
+					if(draw_diamonds(line1,T,background1)==false)
+						T.point_x+=1;
+					
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN('A'))
+		{
+				if (L.point_x>0)
+				{
+					L.point_x-=1;
+					
+					if(draw_diamonds(line2,L,background2)==false)
+						L.point_x+=1;
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			Sleep(300);
+		}
+		if(KEY_DOWN(VK_RIGHT))
+		{
+				if (T.point_x<19 )
+				{
+					T.point_x+=1;
+					
+					if(draw_diamonds(line1,T,background1)==false)
+						T.point_x-=1;
+					
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+		if(KEY_DOWN('D'))
+		{
+				if (L.point_x<19 )
+				{
+					L.point_x+=1;
+					
+					if(draw_diamonds(line2,L,background2)==false)
+						L.point_x-=1;
+					
+					DisPlay(line1,background1,line2,background2);
+					//display(line1,line2);
+				}
+			
+			Sleep(300);
+		}
+	}
+#endif
+	getchar();
+}
+
+
+
+
+
+void display(long line1[23],long line2[23])
+{
+	system("cls");
+	int i,j;
+	for(i=0;i<23;i++)
+	{
+		for (j=0;j<20;j++)
+		{
+			if (line1[i]&(1<<j))
+			{
+				cout<<"■";
+			} 
+			else
+			{
+				cout<<"  ";
+			}
+		}
+		for (j=0;j<20;j++)
+		{
+			if(j==0)
+			{
+				if (line2[i]&(1<<j))
+					cout<<"■"; 
+				else
+					cout<<"| ";
+			}
+			else
+			{
+				if (line2[i]&(1<<j))
+					cout<<"■"; 
+				else
+					cout<<"  ";
+			}
+		}
+	}
+	cout<<"_______________________________________________________________________________";
+}
+bool draw_diamonds(long line1[23],diamonds &dia1,long background[23])//背景范围 横20 纵22
+{
+	int x=dia1.point_x;
+	int y=dia1.point_y;
+	int *temp;
+	if( y<1 || y>21 || x<1 || x>18)
+	{
+		if (x==0 && y==22)
+			return false;
+		if (x==19 && y==22)
+			return false;
+		
+		switch(dia1.name)
+		{
+		case 'L':
+			temp=Tetris_L;
+			break;
+		case 'S':
+			temp=Tetris_S;
+			break;
+		case 'T':
+			temp=Tetris_T;
+			break;
+		default:
+			temp=NULL;
+		}
+		if( (temp[dia1.type] & 0x111) ==0 && x==0)//临界处理
+		{
+			int i;
+			for(i=0;i<23;i++)
+				line1[i]=0;
+			line1[y-1] &= ~(0x7<<(x));
+			line1[y-1] |= ((temp[dia1.type]&0xf00)>>9)<<(x);
+
+			line1[y] &= ~(0x7<<(x));
+			line1[y] |= ((temp[dia1.type]&0x0f0)>>5)<<(x);
+
+			line1[y+1] &= ~(0x7<<(x));
+			line1[y+1] |= ((temp[dia1.type]&0x00f)>>1)<<(x);
+			return true;
+		}
+
+		if( (temp[dia1.type] & 0x444) ==0 && x==19)
+		{
+			int i;
+			for(i=0;i<23;i++)
+				line1[i]=0;
+			line1[y-1] &= ~(0x7<<(x));
+			line1[y-1] |= ((temp[dia1.type]&0xf00)>>7)<<(x-2);
+
+			line1[y] &= ~(0x7<<(x));
+			line1[y] |= ((temp[dia1.type]&0x0f0)>>3)<<(x-2);
+
+			line1[y+1] &= ~(0x7<<(x));
+			line1[y+1] |= ((temp[dia1.type]&0x00f)<<1)<<(x-2);
+			return true;
+		}
+
+		if( (temp[dia1.type] & 0x7) ==0 && y==22)
+		{
+			if (background[22] & (0x7<<(dia1.point_x-1)) !=0)
+			{
+				return false;
+			}
+			int i;
+			for(i=0;i<23;i++)
+				line1[i]=0;
+			line1[y-1] &= ~(0x7<<(x-1));
+			line1[y-1] |= ((temp[dia1.type]&0xf00)>>8)<<(x-1);
+
+			line1[y] &= ~(0x7<<(x-1));
+			line1[y] |= ((temp[dia1.type]&0x0f0)>>4)<<(x-1);
+			return true;
+			
+		}
+		return false;
+	}
+
+
+
+	int i;
+	
+	{
+			long temp[23]={0};
+			int mark=0;//标志
+			long a,b;
+
+			if(dia1.name=='S')
+			{
+				temp[y-1] &= ~(0x7<<(x-1));
+				temp[y-1] |= ((Tetris_S[dia1.type]&0xf00)>>8)<<(x-1);
+
+				a=temp[y-1];
+				b=background[y-1];
+				int c=a&b;
+				if(c !=0)
+				{
+					mark=1;
+				}
+				
+				temp[y] &= ~(0x7<<(x-1));
+				temp[y] |= ((Tetris_S[dia1.type]&0x0f0)>>4)<<(x-1);
+
+				a=temp[y];
+				b=background[y];
+				c=a&b;
+				if(c !=0)
+				{
+					mark=1;
+				}
+				
+				temp[y+1] &= ~(0x7<<(x-1));
+				temp[y+1] |= ((Tetris_S[dia1.type]&0x00f)>>0)<<(x-1);
+
+				a=temp[y+1];
+				b=background[y+1];
+				c=a&b;
+				if( c !=0)
+				{
+					mark=1;
+				}
+
+				if (mark == 0)
+				{
+					for(i=0;i<23;i++)
+						line1[i]=temp[i];
+				}
+				else
+				{
+					return false;
+				}
+			}
+	}
+
+
+	{
+			long temp[23]={0};
+			int mark=0;//标志
+			long a,b;
+
+			if(dia1.name=='T')
+			{
+				
+					temp[y-1] &= ~(0x7<<(x-1));
+					temp[y-1] |= ((Tetris_T[dia1.type]&0xf00)>>8)<<(x-1);
+					a=temp[y-1];
+					b=background[y-1];
+					int c=a&b;
+					if(c !=0)
+					{
+						mark=1;
+					}
+					temp[y] &= ~(0x7<<(x-1));
+					temp[y] |= ((Tetris_T[dia1.type]&0x0f0)>>4)<<(x-1);
+					a=temp[y];
+					b=background[y];
+					c=a&b;
+					if(c !=0)
+					{
+						mark=1;
+					}
+					temp[y+1] &= ~(0x7<<(x-1));
+					temp[y+1] |= ((Tetris_T[dia1.type]&0x00f)>>0)<<(x-1);	
+					a=temp[y+1];
+					b=background[y+1];
+					c=a&b;
+					if(c !=0)
+					{
+						mark=1;
+					}
+					if (mark == 0)
+					{
+						for(i=0;i<23;i++)
+							line1[i]=temp[i];
+					}
+					else
+					{
+						return false;
+					}
+			}
+	}
+	{
+			long temp[23]={0};
+			int mark=0;//标志
+			long a,b;
+
+			if(dia1.name=='L')
+			{
+				
+					temp[y-1] &= ~(0x7<<(x-1));
+					temp[y-1] |= ((Tetris_L[dia1.type]&0xf00)>>8)<<(x-1);
+					a=temp[y-1];
+					b=background[y-1];
+					int c=a&b;
+					if(c !=0)
+					{
+						mark=1;
+					}
+					temp[y] &= ~(0x7<<(x-1));
+					temp[y] |= ((Tetris_L[dia1.type]&0x0f0)>>4)<<(x-1);
+					a=temp[y];
+					b=background[y];
+					c=a&b;
+					if(c !=0)
+					{
+						mark=1;
+					}
+					temp[y+1] &= ~(0x7<<(x-1));
+					temp[y+1] |= ((Tetris_L[dia1.type]&0x00f)>>0)<<(x-1);
+					a=temp[y+1];
+					b=background[y+1];
+					c=a&b;
+					if(c !=0)
+					{
+						mark=1;
+					}
+					if (mark == 0)
+					{
+						for(i=0;i<23;i++)
+							line1[i]=temp[i];
+					}
+					else
+					{
+						return false;
+					}
+			}
+	}
+	return true;
+}
+
+
+void DisPlay(long line[23],long background[23],long line2[23],long background2[23])//结算方块和背景的数据  一并丢给display函数展示成图片  line跟background的值不会改变  
+{
+	int i;
+	int mark1=0,mark2=0;
+	for(i=0;i<23;i++)
+	{
+		if(line[i] & background[i] !=0)  
+		{
+			mark1=1;
+		}
+	}
+	for(i=0;i<23;i++)
+	{
+		if(line2[i] & background2[i] !=0)  
+		{
+			mark2=1;
+		}
+	}
+
+	long temp1[23]={0};
+	long temp2[23]={0};
+	
+	for(i=0;i<23;i++)
+	{
+		temp1[i] = line[i]| background[i];
+	}
+	for(i=0;i<23;i++)
+	{
+		temp2[i] = line2[i]| background2[i];
+	}
+	display(temp1,temp2);
+}
