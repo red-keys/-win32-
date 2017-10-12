@@ -68,7 +68,7 @@ int main()
 	long background1[23]={0};
 	long background2[23]={0};
 
-	background1[21]=0xaa5f5;
+	background1[21]=0xffff7;
 	background1[22]=0x5555f;
 	background2[21]=0xaa5f5;
 	background2[22]=0x5555f;
@@ -157,12 +157,25 @@ int main()
 					
 					if (draw_diamonds(line1,T,background1)==false)
 					{
+						int j=0;
 						T.point_y-=1;
+						int del=-1;//要消去的背景的层数
 						for (int i=0;i<23;i++)
 						{
-							background1[i]|= line1[i];//方块融合到背景里面去
+							background1[i]|= line1[j];//方块融合到背景里面去
+							j++;
+							if( background1[i] == 0xfffff)
+							{
+								del=i;
+							}
 						}
-
+						if (del!=-1)//消去背景中一整行
+						{
+							for (int i=del;i>0;i--)
+							{
+								background1[i]=background1[i-1];
+							}
+						}
 						T.point_x=1;//构造一个新的方块
 						T.point_y=1;
 						draw_diamonds(line1,T,background1);
@@ -180,8 +193,17 @@ int main()
 				{
 					L.point_y+=1;	
 					if (draw_diamonds(line2,L,background2)==false)
+					{
 						L.point_y-=1;
+						for (int i=0;i<23;i++)
+						{
+							background2[i]|= line2[i];//方块融合到背景里面去
+						}
 
+						L.point_x=1;//构造一个新的方块
+						L.point_y=1;
+						draw_diamonds(line2,L,background2);
+					}
 					DisPlay(line1,background1,line2,background2);
 					//display(line1,line2);
 				}
