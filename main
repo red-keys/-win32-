@@ -1,5 +1,7 @@
 #include <iostream>
 #include <windows.h>
+#include <stdlib.h>
+#include <time.h>
 using namespace std;
 
 #define  KEY_DOWN(VK_NONAME)  ((GetAsyncKeyState(VK_NONAME)&0x8000)?1:0)
@@ -70,7 +72,7 @@ int main()
 
 	background1[21]=0xffff7;
 	background1[22]=0x5555f;
-	background2[21]=0xaa5f5;
+	background2[21]=0xffff7;
 	background2[22]=0x5555f;
 
 	draw_diamonds(line2,L,background2);
@@ -176,30 +178,72 @@ int main()
 								background1[i]=background1[i-1];
 							}
 						}
+						srand((unsigned) time(NULL));
+						
+						int random_number;
+						random_number = rand()%3;//生成随机数
+						switch(random_number)//使得新生成的方块为T型L型S型的任何一种
+						{
+						case 0:
+							T.name='S';
+							break;
+						case 1:
+							T.name='L';
+							break;
+						case 2:
+							T.name='T';
+							break;
+						}
 						T.point_x=1;//构造一个新的方块
 						T.point_y=1;
 						draw_diamonds(line1,T,background1);
-
 					}
 					DisPlay(line1,background1,line2,background2);
 					//display(line1,line2);
 				}
 			
-			Sleep(300);
+			Sleep(100);
 		}
 		if(KEY_DOWN('S'))
 		{
 				if (L.point_y<22)
 				{
-					L.point_y+=1;	
+					L.point_y+=1;
+							
 					if (draw_diamonds(line2,L,background2)==false)
 					{
 						L.point_y-=1;
+						int del=-1;
 						for (int i=0;i<23;i++)
 						{
 							background2[i]|= line2[i];//方块融合到背景里面去
+							if( background2[i] == 0xfffff)
+							{
+								del=i;
+							}
+						}
+						if (del!=-1)//消去背景中一整行
+						{
+							for (int i=del;i>0;i--)
+							{
+								background2[i]=background2[i-1];
+							}
 						}
 
+						int random_number;
+						random_number = rand()%3;//生成随机数
+						switch(random_number)//使得新生成的方块为T型L型S型的任何一种
+						{
+						case 0:
+							L.name='S';
+							break;
+						case 1:
+							L.name='L';
+							break;
+						case 2:
+							L.name='T';
+							break;
+						}
 						L.point_x=1;//构造一个新的方块
 						L.point_y=1;
 						draw_diamonds(line2,L,background2);
@@ -208,7 +252,7 @@ int main()
 					//display(line1,line2);
 				}
 			
-			Sleep(300);
+			Sleep(100);
 		}
 		if(KEY_DOWN(VK_LEFT))
 		{
