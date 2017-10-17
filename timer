@@ -1,0 +1,63 @@
+#include <stdio.h>  
+#include <windows.h>  
+#include <conio.h>  
+
+UINT cnt = 0;  
+
+//定时器回调函数  
+void CALLBACK TimeProc(HWND hwnd, UINT message, UINT idTimer, DWORD dwTime);  
+
+//线程回调函数  
+DWORD CALLBACK ThreadProc(PVOID pvoid);    
+
+
+//主函数  
+int main()  
+{  
+	//创建线程  
+	DWORD dwThreadId;    
+	HANDLE hThread = CreateThread(NULL, 0, ThreadProc, 0, 0, &dwThreadId);   
+	printf("hello, thread start!\n");  
+	printf("\n");
+
+	//得到键盘输入后再退出
+	while (1)
+	{
+		printf("stop\n");
+		Sleep(1000);
+	}
+	getch();         
+	return 0;  
+}      
+
+//线程  
+DWORD CALLBACK ThreadProc(PVOID pvoid)  
+{  
+	//强制系统为线程简历消息队列  
+	MSG msg;  
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);   
+
+	//设置定时器  
+	SetTimer(NULL, 10, 1000, TimeProc);  
+
+	//获取并分发消息  
+	while(GetMessage(&msg, NULL, 0, 0))  
+	{  
+		if(msg.message == WM_TIMER)  
+		{  
+			TranslateMessage(&msg);    // 翻译消息  
+			DispatchMessage(&msg);     // 分发消息  
+		}  
+	}  
+
+	KillTimer(NULL, 10);  
+	printf("thread end here\n");  
+	return 0;  
+}  
+
+//定时事件  
+void CALLBACK TimeProc(HWND hwnd, UINT message, UINT idTimer, DWORD dwTime)  
+{  
+	cnt ++;  
+	printf("thread count = %d\n", cnt);  
+}  
