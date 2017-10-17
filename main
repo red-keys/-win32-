@@ -1,7 +1,11 @@
+#include <stdio.h>  
+#include <windows.h>  
+#include <conio.h>  
 #include <iostream>
 #include <windows.h>
 #include <stdlib.h>
 #include <time.h>
+
 using namespace std;
 
 #define  KEY_DOWN(VK_NONAME)  ((GetAsyncKeyState(VK_NONAME)&0x8000)?1:0)
@@ -36,11 +40,13 @@ struct diamonds
 	/*                                                                                                                       */
 
 };
+
 void DisPlay(long line[23],long background[23],long line2[23],long background2[23]);//结算方块和背景的数据  一并丢给display函数展示成图片  line跟background的值不会改变  
 void display(long line1[23],long line2[23]);//将方块结算成 可以展示成图片的数据
 bool draw_diamonds(long line1[23],diamonds &dia1,long background[23]);//  根据需要展示的方块的位置 推算出数据 
 void diamonds_to_background(long lind[23],long background[23]);//将方块融合到背景里面去 成为背景的一部分  line的值不会变 但是background的值会改变 ？
-bool draw_background();// 
+bool draw_background();//
+void display_gameover();//打印游戏结束界面
 bool check_key(char k)//检测键盘是否被按下
 {
 	if(KEY_DOWN(k))
@@ -48,28 +54,39 @@ bool check_key(char k)//检测键盘是否被按下
 	else
 		return false;
 }
-int main()
-{
-	int i=0,j;
-	diamonds T;
-	diamonds L;
+
+//定时器回调函数  
+void CALLBACK TimeProc(HWND hwnd, UINT message, UINT idTimer, DWORD dwTime);  
+
+//线程回调函数  
+DWORD CALLBACK ThreadProc(PVOID pvoid);    
+
+int i=0,j;
+diamonds T;
+diamonds L;
+
+long line1[23]={0};
+long line2[23]={0};
+long background1[23]={0};
+long background2[23]={0};
+
+	
+//主函数  
+int main()  
+{  
+	//创建线程  
+	DWORD dwThreadId;    
+	HANDLE hThread = CreateThread(NULL, 0, ThreadProc, 0, 0, &dwThreadId);   
+
 	T.name='O';
 	L.name='I';
-
 	T.type=0;
 	L.type=0;
-
 	T.point_x=1;
 	T.point_y=1;
-
 	L.point_x=1;
 	L.point_y=1;
-
-	long line1[23]={0};
-	long line2[23]={0};
-	long background1[23]={0};
-	long background2[23]={0};
-
+	
 	background1[21]=0xffff7;
 	background1[22]=0x5555f;
 	background2[21]=0xffff7;
@@ -79,7 +96,7 @@ int main()
 	draw_diamonds(line1,T,background1);
 
 	DisPlay(line1,background1,line2,background2);
-	//display(background1,background2);
+	
 	
 #if 1
 	while (1)
@@ -103,7 +120,7 @@ int main()
 				
 				if(draw_diamonds(line1,T,background1)==false)
 					T.type--;
-				DisPlay(line1,background1,line2,background2);
+				//DisPlay(line1,background1,line2,background2);
 				//display(line1,line2);
 			}
 			Sleep(300);
@@ -132,7 +149,7 @@ int main()
 					if(draw_diamonds(line1,T,background1)==false)
 						T.point_y+=1;
 					
-					DisPlay(line1,background1,line2,background2);
+					//DisPlay(line1,background1,line2,background2);
 					//display(line1,line2);
 				}
 			Sleep(300);
@@ -206,7 +223,7 @@ int main()
 						T.point_y=1;
 						draw_diamonds(line1,T,background1);
 					}
-					DisPlay(line1,background1,line2,background2);
+					//DisPlay(line1,background1,line2,background2);
 					//display(line1,line2);
 				}
 			
@@ -277,7 +294,7 @@ int main()
 					if(draw_diamonds(line1,T,background1)==false)
 						T.point_x+=1;
 					
-					DisPlay(line1,background1,line2,background2);
+					//DisPlay(line1,background1,line2,background2);
 					//display(line1,line2);
 				}
 			
@@ -305,7 +322,7 @@ int main()
 					if(draw_diamonds(line1,T,background1)==false)
 						T.point_x-=1;
 					
-					DisPlay(line1,background1,line2,background2);
+					//DisPlay(line1,background1,line2,background2);
 					//display(line1,line2);
 				}
 			
@@ -328,13 +345,114 @@ int main()
 		}
 	}
 #endif
-	getchar();
+	getchar();       
+	return 0;  
+}      
+
+//线程  
+DWORD CALLBACK ThreadProc(PVOID pvoid)  
+{  
+	//强制系统为线程简历消息队列  
+	MSG msg;  
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);   
+
+	//设置定时器  
+	SetTimer(NULL, 10, 1000, TimeProc);  
+
+	//获取并分发消息  
+	while(GetMessage(&msg, NULL, 0, 0))  
+	{  
+		if(msg.message == WM_TIMER)  
+		{  
+			TranslateMessage(&msg);    // 翻译消息  
+			DispatchMessage(&msg);     // 分发消息  
+		}  
+	}  
+
+	KillTimer(NULL, 10);  
+	printf("thread end here\n");  
+	return 0;  
+}  
+
+//定时事件  
+void CALLBACK TimeProc(HWND hwnd, UINT message, UINT idTimer, DWORD dwTime)  
+{  
+	if (T.point_y<22)
+	{
+					
+		T.point_y+=1;
+					
+		if (draw_diamonds(line1,T,background1)==false)
+		{
+			int j=0;
+			T.point_y-=1;
+			int del=-1;//要消去的背景的层数
+			for (int i=0;i<23;i++)
+			{
+				background1[i]|= line1[j];//方块融合到背景里面去
+				j++;
+				if( background1[i] == 0xfffff)
+				{
+					del=i;
+				}
+			}
+			if (del!=-1)//消去背景中一整行
+			{
+				for (int i=del;i>0;i--)
+				{
+					background1[i]=background1[i-1];
+				}
+			}
+			srand((unsigned) time(NULL));
+						
+			int random_number;
+			random_number = rand()%5;//生成随机数
+			switch(random_number)//使得新生成的方块为T型L型S型的任何一种
+			{
+			case 0:
+				T.name='S';
+				break;
+			case 1:
+				T.name='L';
+				break;
+			case 2:
+				T.name='T';
+				break;
+			case 3:
+				T.name='I';
+				break;
+			case 4:
+				T.name='O';
+				break;
+			}
+			T.point_x=1;//构造一个新的方块
+			T.point_y=1;
+			if(draw_diamonds(line1,T,background1)==false)
+			{
+				background1[0]=1;//构造新方块失败  即游戏结束 构造触发游戏结束的条件
+			}
+		}
+		DisPlay(line1,background1,line2,background2);
+		//display(line1,line2);
+	}
+}  
+
+void display_gameover()
+{
+	system("cls");
+	int i,j;
+	
+	for(i=0;i<23;i++)
+	{
+			if(i==11)
+			{
+				cout<<"               game over!               |"<<endl;
+			}
+			else
+				cout<<"                                        |"<<endl;
+	}
+	cout<<"_______________________________________________________________________________";
 }
-
-
-
-
-
 void display(long line1[23],long line2[23])
 {
 	system("cls");
@@ -698,5 +816,10 @@ void DisPlay(long line[23],long background[23],long line2[23],long background2[2
 	{
 		temp2[i] = line2[i]| background2[i];
 	}
-	display(temp1,temp2);
+	if(background[0]!=0)
+	{	
+		display_gameover();
+	}
+	else
+		display(temp1,temp2);
 }
