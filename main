@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+/*author's mail address:50161091@qq.com*/
+
 using namespace std;
 
 #define  KEY_DOWN(VK_NONAME)  ((GetAsyncKeyState(VK_NONAME)&0x8000)?1:0)
